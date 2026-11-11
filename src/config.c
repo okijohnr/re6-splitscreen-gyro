@@ -25,7 +25,7 @@ static const char k_default_ini[] =
     "disable_button=none\r\n"
     "\r\n"
     "[advanced]\r\n"
-    "counts_per_dps=16.384\r\n"
+    "counts_per_dps=16.31\r\n"
     "deadzone_dps=0.0\r\n"
     "still_dps=2.5\r\n"
     "log_level=1\r\n"
@@ -65,8 +65,8 @@ static void load(void)
     char b[32];
     GetPrivateProfileStringA("gyro", "disable_button", "none", b, sizeof b, g_ini);
     c.disable_button = button_mask(b);
-    c.counts_per_dps = ini_float("advanced", "counts_per_dps", 16.384f);
-    if (c.counts_per_dps <= 0.01f) c.counts_per_dps = 16.384f;
+    c.counts_per_dps = ini_float("advanced", "counts_per_dps", 16.31f);
+    if (c.counts_per_dps <= 0.01f) c.counts_per_dps = 16.31f;
     c.deadzone_dps = ini_float("advanced", "deadzone_dps", 0.0f);
     c.still_dps = ini_float("advanced", "still_dps", 2.5f);
     c.log_level = GetPrivateProfileIntA("advanced", "log_level", 1, g_ini);

@@ -8,6 +8,16 @@ build/xinput1_3.dll: $(SRC) src/common.h src/steaminput.h src/xinput1_3.def
 	@mkdir -p build
 	$(CC) $(CFLAGS) -o $@ $(SRC) src/xinput1_3.def $(LDFLAGS)
 
+build/re6gyro.ini: src/config.c tools/gen_ini.py
+	@mkdir -p build
+	python3 tools/gen_ini.py src/config.c $@
+
+build/release.zip: build/xinput1_3.dll build/re6gyro.ini README.md
+	rm -f $@
+	zip -j -X $@ build/xinput1_3.dll build/re6gyro.ini README.md
+
+release: build/release.zip
+
 install: build/xinput1_3.dll
 	rm -f "$(GAMEDIR)/xinput1_3.dll"
 	cp build/xinput1_3.dll "$(GAMEDIR)/"
@@ -18,4 +28,4 @@ uninstall:
 clean:
 	rm -rf build
 
-.PHONY: install uninstall clean
+.PHONY: release install uninstall clean
