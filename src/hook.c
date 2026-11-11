@@ -12,7 +12,7 @@
 
 #define FN_UPDATE_PAD_ANGLE 0x615c40
 #define PLAYER_INTEL_OFS    0x4e50  // uPlayer -> uPlIntel*
-#define INTEL_PORT_OFS      0xc8c   // uPlIntel -> cPadEx(+0x480) -> cPad(+0x800) -> PortNo(+0xc)
+#define INTEL_PORT_OFS      0xcec   // uPlIntel -> cPadEx(+0x480) -> cPad(+0x860) -> PortNo(+0xc)
 
 static const uint8_t k_prologue[7] = { 0x53, 0x56, 0x57, 0x8b, 0x7c, 0x24, 0x10 };
 
