@@ -28,7 +28,9 @@ static const char k_default_ini[] =
     "counts_per_dps=16.384\r\n"
     "deadzone_dps=0.0\r\n"
     "still_dps=2.5\r\n"
-    "log_level=1\r\n";
+    "log_level=1\r\n"
+    "; 1 = write raw gyro samples to re6gyro_record.csv (for calibration)\r\n"
+    "record=0\r\n";
 
 static float ini_float(const char *sec, const char *key, float def)
 {
@@ -68,10 +70,11 @@ static void load(void)
     c.deadzone_dps = ini_float("advanced", "deadzone_dps", 0.0f);
     c.still_dps = ini_float("advanced", "still_dps", 2.5f);
     c.log_level = GetPrivateProfileIntA("advanced", "log_level", 1, g_ini);
+    c.record = GetPrivateProfileIntA("advanced", "record", 0, g_ini);
     g_cfg = c;
-    logf_("config: enabled=%d sens=%.2f pitch=%.2f inv=%d/%d player_space=%d disable=0x%04x cpd=%.3f",
+    logf_("config: enabled=%d sens=%.2f pitch=%.2f inv=%d/%d player_space=%d disable=0x%04x cpd=%.3f record=%d",
           c.enabled, c.sensitivity, c.sensitivity_pitch, c.invert_yaw, c.invert_pitch,
-          c.player_space, c.disable_button, c.counts_per_dps);
+          c.player_space, c.disable_button, c.counts_per_dps, c.record);
 }
 
 static int mtime(FILETIME *out)

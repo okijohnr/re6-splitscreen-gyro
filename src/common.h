@@ -18,6 +18,7 @@ typedef struct {
     float still_dps;         // below this (after bias) controller counts as still for calibration
     WORD  disable_button;    // XInput button mask; while held, gyro is paused (0 = none)
     int   log_level;
+    int   record;            // write raw samples to re6gyro_record.csv
 } config_t;
 
 extern config_t g_cfg;

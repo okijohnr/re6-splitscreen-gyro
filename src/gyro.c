@@ -3,6 +3,9 @@
 #include <math.h>
 #include <string.h>
 #include "steaminput.h"
+#include <stdio.h>
+
+static FILE *g_rec;
 
 #define DEG2RAD 0.017453293f
 
@@ -184,10 +187,31 @@ static DWORD WINAPI gyro_thread(LPVOID unused)
         prev = now;
         if (dt > 0.05f) dt = 0.05f;
 
+        // raw sample recording for calibration ([advanced] record=1)
+        if (g_cfg.record && !g_rec) {
+            char path[MAX_PATH];
+            extern HMODULE g_self;
+            GetModuleFileNameA(g_self, path, MAX_PATH);
+            char *slash = strrchr(path, '\\');
+            if (slash) slash[1] = 0;
+            strcat(path, "re6gyro_record.csv");
+            g_rec = fopen(path, "w");
+            if (g_rec) fputs("t,ctl,port,rx,ry,rz,ax,ay,az,qx,qy,qz,qw\n", g_rec);
+            logf_("recording raw gyro to %s", path);
+        } else if (!g_cfg.record && g_rec) {
+            fclose(g_rec); g_rec = NULL;
+            logf_("recording stopped");
+        }
+        double tnow = (double)now.QuadPart / freq.QuadPart;
+
         for (int i = 0; i < n; i++) {
             InputMotionData_t m;
             ((pfnSI_GetMotion)VT(si, SI_GetMotionData))(si, &m, h[i]);
             int port = ((pfnSI_GetGamepadIndex)VT(si, SI_GetGamepadIndexForController))(si, h[i]);
+            if (g_rec)
+                fprintf(g_rec, "%.6f,%d,%d,%.1f,%.1f,%.1f,%.0f,%.0f,%.0f,%.6f,%.6f,%.6f,%.6f\n", tnow, i, port,
+                        m.rotVelX, m.rotVelY, m.rotVelZ, m.posAccelX, m.posAccelY, m.posAccelZ,
+                        m.rotQuatX, m.rotQuatY, m.rotQuatZ, m.rotQuatW);
             int paused = 0;
             if (port >= 0 && port < MAX_PORTS && g_cfg.disable_button)
                 paused = (g_buttons[port] & g_cfg.disable_button) != 0;
