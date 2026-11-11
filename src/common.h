@@ -1,0 +1,41 @@
+#pragma once
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <stdint.h>
+
+#define MAX_PORTS 4
+
+// ---------------------------------------------------------------- config
+typedef struct {
+    int   enabled;
+    float sensitivity;       // camera radians per controller radian (yaw)
+    float sensitivity_pitch; // multiplier relative to sensitivity
+    int   invert_yaw;
+    int   invert_pitch;
+    int   player_space;      // 1 = gravity-aware yaw (recommended), 0 = local Z axis
+    float counts_per_dps;    // Steam Input rotVel units per degree/second
+    float deadzone_dps;      // tiny-motion cut-off (deg/s)
+    float still_dps;         // below this (after bias) controller counts as still for calibration
+    WORD  disable_button;    // XInput button mask; while held, gyro is paused (0 = none)
+    int   log_level;
+} config_t;
+
+extern config_t g_cfg;
+void config_load(void);
+void config_maybe_reload(void);
+
+// ---------------------------------------------------------------- log
+void logf_(const char *fmt, ...);
+
+// ---------------------------------------------------------------- shared gyro state
+// Accumulated camera rotation (radians) waiting to be applied, per XInput port.
+void gyro_take(int port, float *dyaw, float *dpitch);
+void gyro_start(void);
+
+// Latest XInput buttons per port, captured by the proxy.
+extern volatile WORD g_buttons[MAX_PORTS];
+
+// ---------------------------------------------------------------- hook
+int hook_install(void);
+extern volatile LONG g_hook_calls[MAX_PORTS];
+extern volatile LONG g_hook_calls_other;
