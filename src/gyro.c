@@ -107,7 +107,11 @@ static void process(int i, int port, const InputMotionData_t *m, float dt, int p
     if (g_cfg.player_space) {
         // Player-space yaw (GyroWiki / JoyShockMapper): rotate around world-up
         // using gravity, with a relax factor so yaw still works when tilted.
-        float gx = c->grav[0], gy = c->grav[1], gz = c->grav[2];
+        // Steam's accelerometer Y axis is mirrored relative to its gyro Y axis
+        // (verified from recorded tilts: d(grav)/dt only matches -w x grav with
+        // Y negated). Without this, yaw is inverted when the controller is held
+        // upright (gravity along Y).
+        float gx = c->grav[0], gy = -c->grav[1], gz = c->grav[2];
         float gl = sqrtf(gx * gx + gy * gy + gz * gz);
         if (gl > 1e-3f) { gx /= gl; gy /= gl; gz /= gl; } else { gx = 0; gy = 0; gz = 1; }
         float world_yaw = w[1] * gy + w[2] * gz;
