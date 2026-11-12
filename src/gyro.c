@@ -238,6 +238,7 @@ static DWORD WINAPI gyro_thread(LPVOID unused)
             }
             last_report = now;
         }
+        debug_poll();
         Sleep(2);
     }
     return 0;

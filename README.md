@@ -63,6 +63,7 @@ Changes apply within a second, even with the game running.
 | `still_dps` | `2.5` | Below this, the controller counts as "still" for drift calibration. |
 | `log_level` | `1` | `0` = minimal log. |
 | `record` | `0` | `1` = write raw gyro samples to `re6gyro_record.csv` (calibration). |
+| `debug` | `0` | `1` = log each player's camera state changes to `re6gyro_log.txt`. Turn on when reporting a bug. |
 
 Settings apply to both players.
 

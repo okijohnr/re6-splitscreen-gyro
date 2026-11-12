@@ -47,6 +47,10 @@ static char __fastcall hook_update(void *self, void *edx, void *pl, float dt, fl
     int port = player_port(pl);
     if (port < 0) { InterlockedIncrement(&g_hook_calls_other); return applied; }
     InterlockedIncrement(&g_hook_calls[port]);
+    g_seen[port].cam = self;
+    g_seen[port].pl = pl;
+    g_seen[port].ret = (DWORD)(uintptr_t)__builtin_return_address(0);
+    g_seen[port].last_ms = GetTickCount();
 
     float dyaw, dpitch;
     gyro_take(port, &dyaw, &dpitch);

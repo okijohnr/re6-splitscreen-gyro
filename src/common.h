@@ -19,6 +19,7 @@ typedef struct {
     WORD  disable_button;    // XInput button mask; while held, gyro is paused (0 = none)
     int   log_level;
     int   record;            // write raw samples to re6gyro_record.csv
+    int   debug;             // log camera state changes / hook gaps
 } config_t;
 
 extern config_t g_cfg;
@@ -40,3 +41,13 @@ extern volatile WORD g_buttons[MAX_PORTS];
 int hook_install(void);
 extern volatile LONG g_hook_calls[MAX_PORTS];
 extern volatile LONG g_hook_calls_other;
+
+// Per-port info captured by the hook, for debug logging.
+typedef struct {
+    void *volatile cam;          // uCameraQFPS* last seen for this port
+    void *volatile pl;           // uPlayer*
+    volatile DWORD ret;          // caller return address of the last hook call
+    volatile DWORD last_ms;      // GetTickCount of the last hook call
+} hook_seen_t;
+extern hook_seen_t g_seen[MAX_PORTS];
+void debug_poll(void);
