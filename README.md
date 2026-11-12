@@ -7,7 +7,8 @@ because the game accepts a single mouse. This mod reads each controller's gyro
 through Steam Input and turns that player's own camera directly. Both players
 get real gyro aiming at the same time, and their right sticks keep working.
 
-- Works while walking and while aiming, for each player independently.
+- Works while walking, aiming (including the moment you raise your weapon) and
+  lying on the ground, for each player independently.
 - Recalibrates gyro drift automatically: set the controller down for a second.
 - Settings are re-read while the game runs, so you can tune them live.
 - Tested on Linux (Proton) with two Nintendo Switch Pro Controllers.
@@ -64,6 +65,7 @@ Changes apply within a second, even with the game running.
 | `log_level` | `1` | `0` = minimal log. |
 | `record` | `0` | `1` = write raw gyro samples to `re6gyro_record.csv` (calibration). |
 | `debug` | `0` | `1` = log each player's camera state changes to `re6gyro_log.txt`. Turn on when reporting a bug. |
+| `stick_test` | `0` | `1` = the first time you're knocked down, measure how the game's lying-down aim responds to the right stick (keep the stick still for ~25 s). Writes `re6gyro_sticktest.csv`. Developer tool. |
 
 Settings apply to both players.
 
@@ -101,11 +103,25 @@ from the game folder, and remove the launch option on Linux.
 - It hooks the game's camera function that turns right-stick input into camera
   angles (`uCameraQFPS`, at `0x615c40`). After the game applies the stick, the
   mod adds that player's gyro rotation, and applies the game's own pitch limits
-  and wrap-around. That function covers every camera mode, aiming included.
+  and wrap-around. That covers normal play and aiming.
+- It also hooks the camera update that calls it (`0x622890`), which knows the
+  current camera mode. Two modes skip camera input, so they're handled there:
+  - **Raising your weapon** (about a quarter of a second): the game ignores
+    camera input, so the mod turns the camera with the gyro directly.
+  - **Lying on the ground**: the camera follows the character's own aim, which
+    the game moves from the right stick. The mod converts the gyro into the
+    right-stick push that gives the same aim speed, using the response measured
+    with `stick_test`, and adds it to that player's controller. Lying-down aim
+    is slower than normal aim in the game, and fast gyro swings hit that limit.
 - It finds which controller drives each camera from the game's own
   player → controller → port number data.
 - Gyro motion during menus and cutscenes is discarded, so the camera doesn't
   snap when you get control back.
+
+## Known limitations
+
+- The dying state (crawling, waiting to be revived) hasn't been tested yet.
+- Tested on Linux (Proton) only; Windows is untested.
 
 ## Building from source
 
