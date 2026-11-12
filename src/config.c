@@ -32,7 +32,9 @@ static const char k_default_ini[] =
     "; 1 = write raw gyro samples to re6gyro_record.csv (for calibration)\r\n"
     "record=0\r\n"
     "; 1 = log camera state changes to re6gyro_log.txt (for bug reports)\r\n"
-    "debug=0\r\n";
+    "debug=0\r\n"
+    "; 1 = measure right-stick response while lying on the ground (writes re6gyro_sticktest.csv)\r\n"
+    "stick_test=0\r\n";
 
 static float ini_float(const char *sec, const char *key, float def)
 {
@@ -74,10 +76,16 @@ static void load(void)
     c.log_level = GetPrivateProfileIntA("advanced", "log_level", 1, g_ini);
     c.record = GetPrivateProfileIntA("advanced", "record", 0, g_ini);
     c.debug = GetPrivateProfileIntA("advanced", "debug", 0, g_ini);
+    c.stick_test = GetPrivateProfileIntA("advanced", "stick_test", 0, g_ini);
+    c.lie_rate_yaw = ini_float("advanced", "lie_rate_yaw", 2.0f);
+    c.lie_rate_pitch = ini_float("advanced", "lie_rate_pitch", 2.0f);
+    c.lie_deadzone = ini_float("advanced", "lie_deadzone", 0.25f);
+    if (c.lie_rate_yaw < 0.05f) c.lie_rate_yaw = 2.0f;
+    if (c.lie_rate_pitch < 0.05f) c.lie_rate_pitch = 2.0f;
     g_cfg = c;
-    logf_("config: enabled=%d sens=%.2f pitch=%.2f inv=%d/%d player_space=%d disable=0x%04x cpd=%.3f record=%d debug=%d",
+    logf_("config: enabled=%d sens=%.2f pitch=%.2f inv=%d/%d player_space=%d disable=0x%04x cpd=%.3f record=%d debug=%d stick_test=%d",
           c.enabled, c.sensitivity, c.sensitivity_pitch, c.invert_yaw, c.invert_pitch,
-          c.player_space, c.disable_button, c.counts_per_dps, c.record, c.debug);
+          c.player_space, c.disable_button, c.counts_per_dps, c.record, c.debug, c.stick_test);
 }
 
 static int mtime(FILETIME *out)
