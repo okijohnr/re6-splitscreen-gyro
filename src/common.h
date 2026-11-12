@@ -21,9 +21,6 @@ typedef struct {
     int   record;            // write raw samples to re6gyro_record.csv
     int   debug;             // log camera state changes / hook gaps
     int   stick_test;        // measure stick->aim response while lying down
-    float lie_rate_yaw;      // aim rad/s at full right-stick deflection, lying down
-    float lie_rate_pitch;
-    float lie_deadzone;      // game's stick deadzone as a fraction of full deflection
 } config_t;
 
 extern config_t g_cfg;

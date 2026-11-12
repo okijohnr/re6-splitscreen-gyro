@@ -92,6 +92,29 @@ static char __fastcall hook_pad(void *self, void *edx, void *pl, float dt, float
 }
 
 // Gyro -> right stick, for camera states driven by the character's own aim.
+//
+// Measured lying-down response (stick_test, Steam build): below ~0.24 deflection
+// nothing happens, then aim rate rises linearly; at full deflection the game
+// jumps to a faster turn. Rates in rad/s. Yaw is the aim offset the game adds
+// to the body (it turns the body once that offset reaches +-10 degrees).
+typedef struct { float defl, rate; } curve_pt;
+static const curve_pt k_lie_yaw[]   = { {0.24f, 0.0f}, {0.95f, 0.59f}, {1.0f, 1.02f} };
+static const curve_pt k_lie_pitch[] = { {0.245f, 0.0f}, {0.95f, 0.70f}, {1.0f, 1.53f} };
+
+static float rate_to_defl(const curve_pt *c, int n, float rate)
+{
+    float r = fabsf(rate);
+    if (r < 1e-4f) return 0;
+    float d = c[n - 1].defl;
+    for (int i = 1; i < n; i++) {
+        if (r <= c[i].rate) {
+            d = c[i - 1].defl + (c[i].defl - c[i - 1].defl) * (r - c[i - 1].rate) / (c[i].rate - c[i - 1].rate);
+            break;
+        }
+    }
+    return copysignf(d, rate);
+}
+
 static void to_stick(int port, float dyaw, float dpitch)
 {
     static LARGE_INTEGER last[MAX_PORTS];
@@ -101,16 +124,9 @@ static void to_stick(int port, float dyaw, float dpitch)
     float dt = last[port].QuadPart ? (float)((double)(now.QuadPart - last[port].QuadPart) / f.QuadPart) : 1.0f / 60;
     last[port] = now;
     if (dt <= 0.001f || dt > 0.1f) dt = 1.0f / 60;
-    // rad/s -> stick fraction. Stick right turns yaw negative, stick up pitches up.
-    float rx = -(dyaw / dt) / g_cfg.lie_rate_yaw;
-    float ry = -(dpitch / dt) / g_cfg.lie_rate_pitch;
-    float dz = g_cfg.lie_deadzone;
-    float sx = rx == 0 ? 0 : copysignf(dz + (1 - dz) * fminf(fabsf(rx), 1.0f), rx);
-    float sy = ry == 0 ? 0 : copysignf(dz + (1 - dz) * fminf(fabsf(ry), 1.0f), ry);
-    if (fabsf(rx) < 1e-4f) sx = 0;
-    if (fabsf(ry) < 1e-4f) sy = 0;
-    g_stick[port].rx = sx;
-    g_stick[port].ry = sy;
+    // Stick right turns yaw negative; stick up raises pitch.
+    g_stick[port].rx = rate_to_defl(k_lie_yaw, 3, -dyaw / dt);
+    g_stick[port].ry = rate_to_defl(k_lie_pitch, 3, dpitch / dt);
     g_stick[port].ms = GetTickCount();
 }
 

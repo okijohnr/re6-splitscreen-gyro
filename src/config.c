@@ -77,11 +77,7 @@ static void load(void)
     c.record = GetPrivateProfileIntA("advanced", "record", 0, g_ini);
     c.debug = GetPrivateProfileIntA("advanced", "debug", 0, g_ini);
     c.stick_test = GetPrivateProfileIntA("advanced", "stick_test", 0, g_ini);
-    c.lie_rate_yaw = ini_float("advanced", "lie_rate_yaw", 2.0f);
-    c.lie_rate_pitch = ini_float("advanced", "lie_rate_pitch", 2.0f);
-    c.lie_deadzone = ini_float("advanced", "lie_deadzone", 0.25f);
-    if (c.lie_rate_yaw < 0.05f) c.lie_rate_yaw = 2.0f;
-    if (c.lie_rate_pitch < 0.05f) c.lie_rate_pitch = 2.0f;
+
     g_cfg = c;
     logf_("config: enabled=%d sens=%.2f pitch=%.2f inv=%d/%d player_space=%d disable=0x%04x cpd=%.3f record=%d debug=%d stick_test=%d",
           c.enabled, c.sensitivity, c.sensitivity_pitch, c.invert_yaw, c.invert_pitch,
