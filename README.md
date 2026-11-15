@@ -11,8 +11,8 @@ get real gyro aiming at the same time, and their right sticks keep working.
   lying on the ground, for each player independently.
 - Recalibrates gyro drift automatically: set the controller down for a second.
 - Settings are re-read while the game runs, so you can tune them live.
-- Tested on Linux (Proton) with two Nintendo Switch Pro Controllers.
-  Should work on Windows and with other gyro controllers Steam Input supports
+- Tested on Windows and on Linux (Proton) with two Nintendo Switch Pro
+  Controllers. Should work with other gyro controllers Steam Input supports
   (DualShock 4, DualSense, Steam Deck, Steam Controller), but these are untested.
 
 ## Requirements
@@ -118,7 +118,6 @@ from the game folder, and remove the launch option on Linux.
 ## Known limitations
 
 - The dying state (crawling, waiting to be revived) hasn't been tested yet.
-- Tested on Linux (Proton) only; Windows is untested.
 
 ## Building from source
 
