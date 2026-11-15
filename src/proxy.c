@@ -115,7 +115,7 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID r)
         g_self = h;
         DisableThreadLibraryCalls(h);
         open_log();
-        logf_("re6gyro v0.6-dev loaded");
+        logf_("re6gyro v0.6 loaded");
         config_load();
         hook_install();
         gyro_start();

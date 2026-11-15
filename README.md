@@ -65,7 +65,6 @@ Changes apply within a second, even with the game running.
 | `log_level` | `1` | `0` = minimal log. |
 | `record` | `0` | `1` = write raw gyro samples to `re6gyro_record.csv` (calibration). |
 | `debug` | `0` | `1` = log each player's camera state changes to `re6gyro_log.txt`. Turn on when reporting a bug. |
-| `stick_test` | `0` | `1` = the first time you're knocked down, measure how the game's lying-down aim responds to the right stick (keep the stick still for ~25 s). Writes `re6gyro_sticktest.csv`. Developer tool. |
 
 Settings apply to both players.
 
@@ -108,11 +107,9 @@ from the game folder, and remove the launch option on Linux.
   current camera mode. Two modes skip camera input, so they're handled there:
   - **Raising your weapon** (about a quarter of a second): the game ignores
     camera input, so the mod turns the camera with the gyro directly.
-  - **Lying on the ground**: the camera follows the character's own aim, which
-    the game moves from the right stick. The mod converts the gyro into the
-    right-stick push that gives the same aim speed, using the response measured
-    with `stick_test`, and adds it to that player's controller. Lying-down aim
-    is slower than normal aim in the game, and fast gyro swings hit that limit.
+  - **Lying on the ground**: the camera follows the character's own aim. The
+    mod also hooks the game's aim update for the character (`0xabaa40`) and
+    adds the gyro to that aim, so the game's own limits and body turning apply.
 - It finds which controller drives each camera from the game's own
   player → controller → port number data.
 - Gyro motion during menus and cutscenes is discarded, so the camera doesn't
