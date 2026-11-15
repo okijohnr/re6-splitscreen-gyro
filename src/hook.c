@@ -13,8 +13,17 @@
 //      mode 2           - e.g. the ~275 ms aim-in transition: no camera input.
 //                         We add gyro straight to the camera angles (+0x290/+0x294).
 //      mode 1, state 1  - e.g. lying on the ground: the camera copies the
-//                         character's own aim, which the game drives from the
-//                         right stick. We feed gyro in as extra right-stick input.
+//                         character's own aim (see 3).
+//
+// 3) cPadEx aim update (0xabaa40)
+//      void __thiscall cPadEx(uPlayer *pl, ... 5 more)
+//    Runs every frame and moves the character's own aim from the right stick:
+//      pad+0x848  yaw offset in degrees, clamped to +-10; the excess goes to
+//                 pad+0x834 and turns the body
+//      pad+0x84c  pitch, 1.0 = 90 deg for the aim, used as radians by the camera
+//    The game copies these to the player (0xa45da0) and, lying down, the camera
+//    follows them. While that player's camera is in mode 1/state 1 we add gyro to
+//    both before the update runs, so the game's own limits and body turn apply.
 #include "common.h"
 #include <math.h>
 #include <string.h>
@@ -25,18 +34,23 @@
 #define INTEL_PORT_OFS      0xcec   // uPlIntel -> cPadEx(+0x480) -> cPad(+0x860) -> PortNo(+0xc)
 #define CAM_PITCH           0x290
 #define CAM_YAW             0x294
+#define FN_PAD_AIM          0xabaa40
+#define PAD_PORT            0x86c   // cPadEx -> cPad(+0x860) -> PortNo(+0xc)
+#define PAD_AIM_YAW_DEG     0x848
+#define PAD_AIM_PITCH       0x84c
 
 static const uint8_t k_pro_pad[7]   = { 0x53, 0x56, 0x57, 0x8b, 0x7c, 0x24, 0x10 };
 static const uint8_t k_pro_angle[6] = { 0x55, 0x8b, 0xec, 0x83, 0xe4, 0xf0 };
 
 typedef char (__fastcall *pad_fn)(void *self, void *edx, void *pl, float dt, float *pitch, float *yaw, int flag);
 typedef void (__fastcall *angle_fn)(void *self, void *edx, void *pl, int mode, int state, int idx, float lim, float dt, int flag);
+typedef void (__fastcall *aim_fn)(void *pad, void *edx, void *pl, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6);
 static pad_fn g_orig_pad;
 static angle_fn g_orig_angle;
+static aim_fn g_orig_aim;
 
 volatile LONG g_hook_calls[MAX_PORTS];
 volatile LONG g_hook_calls_other;
-stick_inject_t g_stick[MAX_PORTS];
 
 static int player_port(void *pl)
 {
@@ -91,43 +105,18 @@ static char __fastcall hook_pad(void *self, void *edx, void *pl, float dt, float
     return 1; // tell the camera the player moved it (suppresses auto-recentre)
 }
 
-// Gyro -> right stick, for camera states driven by the character's own aim.
-//
-// Measured lying-down response (stick_test, Steam build): below ~0.24 deflection
-// nothing happens, then aim rate rises linearly; at full deflection the game
-// jumps to a faster turn. Rates in rad/s. Yaw is the aim offset the game adds
-// to the body (it turns the body once that offset reaches +-10 degrees).
-typedef struct { float defl, rate; } curve_pt;
-static const curve_pt k_lie_yaw[]   = { {0.24f, 0.0f}, {0.95f, 0.59f}, {1.0f, 1.02f} };
-static const curve_pt k_lie_pitch[] = { {0.245f, 0.0f}, {0.95f, 0.70f}, {1.0f, 1.53f} };
-
-static float rate_to_defl(const curve_pt *c, int n, float rate)
+static void __fastcall hook_aim(void *pad, void *edx, void *pl, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5, uint32_t a6)
 {
-    float r = fabsf(rate);
-    if (r < 1e-4f) return 0;
-    float d = c[n - 1].defl;
-    for (int i = 1; i < n; i++) {
-        if (r <= c[i].rate) {
-            d = c[i - 1].defl + (c[i].defl - c[i - 1].defl) * (r - c[i - 1].rate) / (c[i].rate - c[i - 1].rate);
-            break;
-        }
+    uint32_t port = pad ? *(uint32_t *)((uint8_t *)pad + PAD_PORT) : 0xffffffff;
+    if (port < MAX_PORTS && g_seen[port].mode == 1 && g_seen[port].state == 1 &&
+        GetTickCount() - g_seen[port].last_ms < 200) {
+        float dyaw, dpitch;
+        gyro_take((int)port, &dyaw, &dpitch);
+        // camera yaw = body + offset (deg); camera pitch = -aim pitch
+        *(float *)((uint8_t *)pad + PAD_AIM_YAW_DEG) += dyaw * 57.29578f;
+        *(float *)((uint8_t *)pad + PAD_AIM_PITCH) -= dpitch;
     }
-    return copysignf(d, rate);
-}
-
-static void to_stick(int port, float dyaw, float dpitch)
-{
-    static LARGE_INTEGER last[MAX_PORTS];
-    LARGE_INTEGER now, f;
-    QueryPerformanceCounter(&now);
-    QueryPerformanceFrequency(&f);
-    float dt = last[port].QuadPart ? (float)((double)(now.QuadPart - last[port].QuadPart) / f.QuadPart) : 1.0f / 60;
-    last[port] = now;
-    if (dt <= 0.001f || dt > 0.1f) dt = 1.0f / 60;
-    // Stick right turns yaw negative; stick up raises pitch.
-    g_stick[port].rx = rate_to_defl(k_lie_yaw, 3, -dyaw / dt);
-    g_stick[port].ry = rate_to_defl(k_lie_pitch, 3, dpitch / dt);
-    g_stick[port].ms = GetTickCount();
+    g_orig_aim(pad, edx, pl, a2, a3, a4, a5, a6);
 }
 
 static void __fastcall hook_angle(void *self, void *edx, void *pl, int mode, int state, int idx, float lim, float dt, int flag)
@@ -139,18 +128,13 @@ static void __fastcall hook_angle(void *self, void *edx, void *pl, int mode, int
     g_seen[port].mode = mode;
     g_seen[port].state = state;
 
-    if (stick_test_frame(port, self, pl, mode, state, dt)) return;
-
     if (mode == 2) {
         seen(port, self, pl, 0x622890);
         float dyaw, dpitch;
         gyro_take(port, &dyaw, &dpitch);
         apply((float *)((uint8_t *)self + CAM_PITCH), (float *)((uint8_t *)self + CAM_YAW), dpitch, dyaw);
     } else if (mode == 1 && state == 1) {
-        seen(port, self, pl, 0x622891);
-        float dyaw, dpitch;
-        gyro_take(port, &dyaw, &dpitch);
-        to_stick(port, dyaw, dpitch);
+        seen(port, self, pl, 0x622891); // gyro is applied in hook_aim
     }
 }
 
@@ -187,5 +171,7 @@ int hook_install(void)
     g_orig_pad = (pad_fn)install(FN_UPDATE_PAD_ANGLE, k_pro_pad, sizeof k_pro_pad, (void *)hook_pad, "pad-angle");
     if (!g_orig_pad) return 0;
     g_orig_angle = (angle_fn)install(FN_UPDATE_ANGLE, k_pro_angle, sizeof k_pro_angle, (void *)hook_angle, "camera-angle");
-    return g_orig_angle != NULL;
+    if (!g_orig_angle) return 0;
+    g_orig_aim = (aim_fn)install(FN_PAD_AIM, k_pro_angle, sizeof k_pro_angle, (void *)hook_aim, "character-aim");
+    return g_orig_aim != NULL;
 }

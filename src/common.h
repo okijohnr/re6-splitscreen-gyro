@@ -20,7 +20,6 @@ typedef struct {
     int   log_level;
     int   record;            // write raw samples to re6gyro_record.csv
     int   debug;             // log camera state changes / hook gaps
-    int   stick_test;        // measure stick->aim response while lying down
 } config_t;
 
 extern config_t g_cfg;
@@ -52,9 +51,5 @@ typedef struct {
     volatile int mode, state;    // camera mode/state from the angle-update hook
 } hook_seen_t;
 
-// Extra right-stick input added by the XInput proxy (fraction of full, -1..1).
-typedef struct { volatile float rx, ry; volatile DWORD ms; } stick_inject_t;
-extern stick_inject_t g_stick[MAX_PORTS];
-int stick_test_frame(int port, void *cam, void *pl, int mode, int state, float dt);
 extern hook_seen_t g_seen[MAX_PORTS];
 void debug_poll(void);

@@ -81,23 +81,9 @@ static void load_real(void)
     r_Battery      = GPA(pfnBattery, "XInputGetBatteryInformation");
 }
 
-static SHORT add_axis(SHORT v, float add)
-{
-    int r = v + (int)(add * 32767.0f);
-    if (r > 32767) r = 32767;
-    if (r < -32768) r = -32768;
-    return (SHORT)r;
-}
-
 static void note_state(DWORD idx, DWORD rc, XINPUT_STATE *s)
 {
-    if (idx >= MAX_PORTS) return;
-    g_buttons[idx] = (rc == 0 && s) ? s->Gamepad.wButtons : 0;
-    // gyro fed in as right stick for camera states the hook can't drive directly
-    if (rc == 0 && s && GetTickCount() - g_stick[idx].ms < 100) {
-        s->Gamepad.sThumbRX = add_axis(s->Gamepad.sThumbRX, g_stick[idx].rx);
-        s->Gamepad.sThumbRY = add_axis(s->Gamepad.sThumbRY, g_stick[idx].ry);
-    }
+    if (idx < MAX_PORTS) g_buttons[idx] = (rc == 0 && s) ? s->Gamepad.wButtons : 0;
 }
 
 // ---------------------------------------------------------------- exports
@@ -129,7 +115,7 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID r)
         g_self = h;
         DisableThreadLibraryCalls(h);
         open_log();
-        logf_("re6gyro v0.5 loaded");
+        logf_("re6gyro v0.6-dev loaded");
         config_load();
         hook_install();
         gyro_start();

@@ -40,7 +40,7 @@ static const char *site_name(DWORD ret)
     case 0x622f3e: return "default/state0 stick";
     case 0x622f84: return "default/state1 relative";
     case 0x622890: return "mode2 no-input: gyro applied to camera directly";
-    case 0x622891: return "mode1/state1 player aim: gyro sent as right stick";
+    case 0x622891: return "mode1/state1 player aim: gyro added to character aim";
     default:       return "unknown caller";
     }
 }
