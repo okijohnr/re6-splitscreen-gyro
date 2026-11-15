@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 okijohnr
 // [advanced] debug=1: log per-player camera state changes and pauses in the
 // camera hook, so bug reports show which camera mode a situation uses.
 //

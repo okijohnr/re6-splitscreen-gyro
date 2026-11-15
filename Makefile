@@ -12,9 +12,9 @@ build/re6gyro.ini: src/config.c tools/gen_ini.py
 	@mkdir -p build
 	python3 tools/gen_ini.py src/config.c $@
 
-build/release.zip: build/xinput1_3.dll build/re6gyro.ini README.md
+build/release.zip: build/xinput1_3.dll build/re6gyro.ini README.md LICENSE
 	rm -f $@
-	zip -j -X $@ build/xinput1_3.dll build/re6gyro.ini README.md
+	zip -j -X $@ build/xinput1_3.dll build/re6gyro.ini README.md LICENSE
 
 release: build/release.zip
 

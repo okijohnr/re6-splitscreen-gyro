@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 okijohnr
 // RE6 splitscreen gyro aiming.
 // Proxy xinput1_3.dll: forwards XInput to the real system DLL, records button
 // state per port, installs the camera hook and starts the Steam Input gyro reader.

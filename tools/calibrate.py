@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 okijohnr
 """Analyse re6gyro_record.csv from the table-turn calibration.
 
 usage: calibrate.py re6gyro_record.csv [turns=3]

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 okijohnr
 // Camera hooks in BH6.exe.
 //
 // 1) uCameraQFPS::UpdatePadAngle (0x615c40)

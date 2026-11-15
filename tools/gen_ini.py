@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 okijohnr
 """Write the default re6gyro.ini embedded in src/config.c to the given path."""
 import re, sys
 s = open(sys.argv[1]).read()

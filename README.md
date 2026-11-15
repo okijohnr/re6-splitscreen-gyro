@@ -128,3 +128,16 @@ make            # build/xinput1_3.dll
 make release    # build/release.zip
 make install GAMEDIR="/path/to/Resident Evil 6"
 ```
+
+## License
+
+Copyright (C) 2026 okijohnr.
+
+This mod is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version. It is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; see [LICENSE](LICENSE) for the full text.
+
+Resident Evil 6 is a trademark of Capcom. This project is not affiliated with
+or endorsed by Capcom or Valve, and contains no game code.

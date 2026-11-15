@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 okijohnr
 // Minimal hand-rolled access to ISteamClient / ISteamInput006 via vtable index.
 // We call through explicit __thiscall function pointers rather than C++ virtuals
 // so the MSVC ABI (incl. hidden struct-return pointer) is matched exactly.
