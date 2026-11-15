@@ -1,6 +1,9 @@
 CC      = i686-w64-mingw32-gcc
 CFLAGS  = -O2 -Wall -Wextra -std=gnu11 -fno-strict-aliasing
 LDFLAGS = -shared -static -static-libgcc -Wl,--kill-at -Wl,--enable-stdcall-fixup
+# Game folder for `make install`. Put your own path in config.mk (not tracked),
+# e.g.  GAMEDIR = /path/to/SteamLibrary/steamapps/common/Resident Evil 6
+-include config.mk
 GAMEDIR ?= $(HOME)/.local/share/Steam/steamapps/common/Resident Evil 6
 SRC     = src/proxy.c src/gyro.c src/hook.c src/config.c src/debug.c
 
