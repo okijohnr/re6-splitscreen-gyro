@@ -7,8 +7,9 @@ because the game accepts a single mouse. This mod reads each controller's gyro
 through Steam Input and turns that player's own camera directly. Both players
 get real gyro aiming at the same time, and their right sticks keep working.
 
-- Works while walking, aiming (including the moment you raise your weapon) and
-  lying on the ground, for each player independently.
+- Works while walking, aiming (including the moment you raise your weapon),
+  lying on the ground, swimming and on mounted guns, for each player
+  independently, whichever character each player picks.
 - Recalibrates gyro drift automatically: set the controller down for a second.
 - Settings are re-read while the game runs, so you can tune them live.
 - Tested on Windows and on Linux (Proton) with two Nintendo Switch Pro
@@ -50,6 +51,8 @@ Changes apply within a second, even with the game running.
 | `enabled` | `1` | `0` turns gyro off. |
 | `sensitivity` | `2.0` | Camera degrees per degree you turn the controller. `1.0` is 1:1. |
 | `sensitivity_pitch` | `1.0` | Up/down sensitivity relative to left/right. |
+| `sensitivity_swim` | `0.75` | Multiplier while swimming. The game turns the camera with the right stick at about 0.75x its on-land speed there (130 vs 170 deg/s, measured). |
+| `swim_max_dps` | `130` | Fastest turn while swimming, in degrees per second; faster controller movement is ignored, like the game does for the stick and mouse. The right stick tops out at about 130. `0` = no cap. |
 | `invert_yaw` | `0` | `1` reverses left/right. |
 | `invert_pitch` | `0` | `1` reverses up/down. |
 | `player_space` | `1` | `1` = turn by yawing *or* rolling the controller, however you hold it (recommended). `0` = only the controller's own vertical axis. |
@@ -118,6 +121,8 @@ from the game folder, and remove the launch option on Linux.
 ## Known limitations
 
 - The dying state (crawling, waiting to be revived) hasn't been tested yet.
+- Mounted guns are tested on one turret in Leon's campaign; other mounted guns
+  may use different code.
 
 ## Building from source
 

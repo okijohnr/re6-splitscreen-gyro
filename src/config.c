@@ -18,6 +18,10 @@ static const char k_default_ini[] =
     "sensitivity=2.0\r\n"
     "; vertical sensitivity relative to horizontal\r\n"
     "sensitivity_pitch=1.0\r\n"
+    "; multiplier while swimming: the game turns the right stick 0.75x as fast there as on land\r\n"
+    "sensitivity_swim=0.75\r\n"
+    "; fastest turn while swimming, degrees per second (the right stick tops out at ~130). 0 = no cap\r\n"
+    "swim_max_dps=130\r\n"
     "invert_yaw=0\r\n"
     "invert_pitch=0\r\n"
     "; 1 = player space (turn the controller like a steering wheel OR yaw it; recommended)\r\n"
@@ -63,6 +67,8 @@ static void load(void)
     c.enabled = GetPrivateProfileIntA("gyro", "enabled", 1, g_ini);
     c.sensitivity = ini_float("gyro", "sensitivity", 2.0f);
     c.sensitivity_pitch = ini_float("gyro", "sensitivity_pitch", 1.0f);
+    c.sensitivity_swim = ini_float("gyro", "sensitivity_swim", 0.75f);
+    c.swim_max_dps = ini_float("gyro", "swim_max_dps", 130.0f);
     c.invert_yaw = GetPrivateProfileIntA("gyro", "invert_yaw", 0, g_ini);
     c.invert_pitch = GetPrivateProfileIntA("gyro", "invert_pitch", 0, g_ini);
     c.player_space = GetPrivateProfileIntA("gyro", "player_space", 1, g_ini);
@@ -78,8 +84,8 @@ static void load(void)
     c.debug = GetPrivateProfileIntA("advanced", "debug", 0, g_ini);
 
     g_cfg = c;
-    logf_("config: enabled=%d sens=%.2f pitch=%.2f inv=%d/%d player_space=%d disable=0x%04x cpd=%.3f record=%d debug=%d",
-          c.enabled, c.sensitivity, c.sensitivity_pitch, c.invert_yaw, c.invert_pitch,
+    logf_("config: enabled=%d sens=%.2f pitch=%.2f swim=%.2f cap=%.0f inv=%d/%d player_space=%d disable=0x%04x cpd=%.3f record=%d debug=%d",
+          c.enabled, c.sensitivity, c.sensitivity_pitch, c.sensitivity_swim, c.swim_max_dps, c.invert_yaw, c.invert_pitch,
           c.player_space, c.disable_button, c.counts_per_dps, c.record, c.debug);
 }
 

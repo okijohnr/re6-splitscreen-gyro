@@ -16,6 +16,7 @@
 #include <string.h>
 
 hook_seen_t g_seen[MAX_PORTS];
+dbg_shared_t g_dbg = { .magic = "RE6GDBG" };
 
 typedef struct {
     uint32_t tgt;
@@ -43,6 +44,8 @@ static const char *site_name(DWORD ret)
     case 0x622f84: return "default/state1 relative";
     case 0x622890: return "mode2 no-input: gyro applied to camera directly";
     case 0x622891: return "mode1/state1 player aim: gyro added to character aim";
+    case 0xcdd190: return "mounted turret: gyro added to turret aim";
+    case 0x622892: return "mode3/state1 camera behind character (swimming): gyro turns the body";
     default:       return "unknown caller";
     }
 }
@@ -61,6 +64,27 @@ void debug_poll(void)
     static DWORD gap_start[MAX_PORTS];
     if (!g_cfg.debug) return;
     DWORD now = GetTickCount();
+
+    // D-pad presses, used as markers when recording a situation from outside
+    static WORD last_btn[MAX_PORTS];
+    for (int p = 0; p < MAX_PORTS; p++) {
+        WORD b = g_buttons[p] & 0x000f;
+        if (b != last_btn[p] && b) logf_("dbg dpad port%d %04x", p, b);
+        last_btn[p] = b;
+    }
+
+    // right-stick readers: log when one starts (or resumes after a second idle)
+    static int active[MAX_STICK_SITES];
+    for (int i = 0; i < MAX_STICK_SITES; i++) {
+        stick_site_t *s = &g_stick_sites[i];
+        if (!s->ret) break;
+        int on = now - s->last_ms < 1000;
+        if (on && !active[i])
+            logf_("dbg stick read by %#lx for port %d (%ld calls so far)", (unsigned long)s->ret, s->port, (long)s->calls);
+        else if (!on && active[i])
+            logf_("dbg stick reader %#lx port %d stopped", (unsigned long)s->ret, s->port);
+        active[i] = on;
+    }
 
     for (int p = 0; p < MAX_PORTS; p++) {
         uint8_t *cam = g_seen[p].cam;

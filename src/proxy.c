@@ -85,7 +85,12 @@ static void load_real(void)
 
 static void note_state(DWORD idx, DWORD rc, XINPUT_STATE *s)
 {
-    if (idx < MAX_PORTS) g_buttons[idx] = (rc == 0 && s) ? s->Gamepad.wButtons : 0;
+    if (idx < MAX_PORTS) {
+        g_buttons[idx] = (rc == 0 && s) ? s->Gamepad.wButtons : 0;
+        g_dbg.rx[idx] = (rc == 0 && s) ? s->Gamepad.sThumbRX : 0;
+        g_dbg.ry[idx] = (rc == 0 && s) ? s->Gamepad.sThumbRY : 0;
+        g_dbg.now_ms = GetTickCount();
+    }
 }
 
 // ---------------------------------------------------------------- exports
@@ -117,7 +122,7 @@ BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID r)
         g_self = h;
         DisableThreadLibraryCalls(h);
         open_log();
-        logf_("re6gyro v0.6 loaded");
+        logf_("re6gyro v0.7 loaded");
         config_load();
         hook_install();
         gyro_start();
